@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container" ng-controller="listCtrl">
     <h2 style="margin-bottom: 8px;">List user</h2>
     <table class="table table-striped">
         <thead>
@@ -8,26 +8,10 @@
             <th>Action</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody ng-repeat="u in user">
         <tr>
-            <td>John</td>
-            <td>john@example.com</td>
-            <td>
-                <i class="fas fa-user-edit"></i>&nbsp;&nbsp;
-                <i class="fas fa-trash"></i>
-            </td>
-        </tr>
-        <tr>
-            <td>Mary</td>
-            <td>mary@example.com</td>
-            <td>
-                <i class="fas fa-user-edit"></i>&nbsp;&nbsp;
-                <i class="fas fa-trash"></i>
-            </td>
-        </tr>
-        <tr>
-            <td>July</td>
-            <td>july@example.com</td>
+            <td>{{u.data.data.name}}</td>
+            <td>{{u.data.data.email}}</td>
             <td>
                 <i class="fas fa-user-edit"></i>&nbsp;&nbsp;
                 <i class="fas fa-trash"></i>

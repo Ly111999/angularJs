@@ -1,5 +1,6 @@
 var app = angular.module("demo", ["ngRoute"]);
-app.constant("baseUrl","http://localhost:63343/demo");
+var API = 'http://127.0.0.1:8000/api/auth';
+app.constant("baseUrl", "http://localhost:63343/demo");
 app.config(function ($routeProvider) {
 
     var route = "/demo";
@@ -12,12 +13,12 @@ app.config(function ($routeProvider) {
             templateUrl: "login.html",
             controller: "loginCtrl"
         })
-        // .when("/", {
-        //     templateUrl: "list.html",
-        //     controller: "listCtrl"
-        // })
+        .when("/list", {
+            templateUrl: "list.html",
+            controller: "listCtrl"
+        })
         .when('/logout', {
-            template: "logout.html",
+            templateUrl: "logout.html",
             controller: "logoutCtrl"
         })
 });
@@ -25,11 +26,8 @@ app.config(function ($routeProvider) {
 //register controller
 app.controller("registerCtrl", function ($scope, $http, $location) {
     window.scrollTo(0, 0);
-    if (Cookies.get('access-token')) {
-        $location.path('/')
-    }
-    if (sessionStorage.accessToken) {
-        $location.path('/')
+    if (sessionStorage.token) {
+        $location.path('/list');
     }
 
     $scope.member = {
@@ -45,14 +43,16 @@ app.controller("registerCtrl", function ($scope, $http, $location) {
                 url: 'http://127.0.0.1:8000/api/auth/register',
                 data: $scope.member
             }).then(function successCallback(response) {
+                console.log(response);
                 Swal.fire(
                     'Register successfully!',
                     'Please check your email when accepted.',
                     'success'
                 );
+                console.log($scope.member);
                 lrform.reset();
                 setTimeout(function () {
-                    window.location.replace("/demo/login.html");
+                    window.location.replace("#!login");
                 }, 2 * 1000);
             }, function errorCallback(response) {
                 Swal.fire(
@@ -69,11 +69,8 @@ app.controller("registerCtrl", function ($scope, $http, $location) {
 //login controller
 app.controller('loginCtrl', function ($scope, $http, $location) {
     window.scrollTo(0, 0);
-    if (Cookies.get('access-token')) {
-        $location.path('/')
-    }
     if (sessionStorage.accessToken) {
-        $location.path('/')
+        $location.path('/list');
     }
 
     $scope.member = {
@@ -98,8 +95,7 @@ app.controller('loginCtrl', function ($scope, $http, $location) {
                 sessionStorage.setItem('token', response.data.token);
                 sessionStorage.setItem('expires_at', response.data.expires_at);
                 setTimeout(function () {
-                    // $location.path('/logout');
-                    window.location.replace("/logout");
+                    window.location.replace("#!list");
                 }, 2 * 1000);
             }, function errorCallback(response) {
                 Swal.fire(
@@ -113,7 +109,7 @@ app.controller('loginCtrl', function ($scope, $http, $location) {
     }
 });
 
-//logout
+//logout controller
 app.controller('logoutCtrl', function ($scope, $http) {
     $scope.logout = function () {
         $http({
@@ -132,7 +128,7 @@ app.controller('logoutCtrl', function ($scope, $http) {
             sessionStorage.removeItem('token');
             sessionStorage.removeItem('expires_at');
             setTimeout(function () {
-                window.location.replace("/demo/register.html");
+                window.location.replace("#!register");
             }, 2 * 1000);
         }, function errorCallback(response) {
             Swal.fire(
@@ -143,4 +139,39 @@ app.controller('logoutCtrl', function ($scope, $http) {
         });
     }
 });
+
+//list user controller
+app.controller("listCtrl", function ($scope, $location, $http) {
+    window.scrollTo(0, 0);
+    var url = "";
+    var auth = "";
+    if (!sessionStorage.token) {
+        $location.path('/register');
+    } else {
+        url = 'http://127.0.0.1:8000/api/auth/user';
+        auth = sessionStorage.token;
+    }
+    $scope.user = [];
+    $http({
+        method: 'GET',
+        url: url,
+        headers: {
+            'Authorization': 'Bearer ' + auth
+        }
+    }).then(function successCallback(responce) {
+        console.log(responce.data);
+        $scope.listUser = responce.data;
+        // if ($scope.listUser.length > 6) {
+        //     for (var i = 0; i < 6; i++) {
+        //         $scope.user.push(($scope.listUser));
+        //         $scope.user = $scope.user.reverse();
+        //     }
+        // } else {
+        //     $scope.user = $scope.listUser
+        // }
+    }, function errorCallback(response) {
+        // console.log(response)
+    });
+});
+
 
