@@ -8,13 +8,14 @@
             <th>Action</th>
         </tr>
         </thead>
-        <tbody ng-repeat="u in user">
-        <tr>
-            <td>{{u.data.data.name}}</td>
-            <td>{{u.data.data.email}}</td>
+        <tbody >
+        <tr ng-repeat="u in user.data">
+            <td>{{u.name}}</td>
+            <td>{{u.email}}</td>
             <td>
-                <i class="fas fa-user-edit"></i>&nbsp;&nbsp;
-                <i class="fas fa-trash"></i>
+<!--                <i class="fas fa-user-edit"></i>&nbsp;&nbsp;-->
+                <button ng-click="delete(u.id)" name="delete" type="submit" class="btn btn-success">  <i class="fas fa-trash"></i></button>
+
             </td>
         </tr>
         </tbody>

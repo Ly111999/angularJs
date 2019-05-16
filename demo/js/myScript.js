@@ -2,10 +2,8 @@ var app = angular.module("demo", ["ngRoute"]);
 var API = 'http://127.0.0.1:8000/api/auth';
 app.constant("baseUrl", "http://localhost:63343/demo");
 app.config(function ($routeProvider) {
-
-    var route = "/demo";
     $routeProvider
-        .when("/", {
+        .when("/register", {
             templateUrl: "register.html",
             controller: "registerCtrl"
         })
@@ -19,6 +17,18 @@ app.config(function ($routeProvider) {
         })
         .when('/logout', {
             templateUrl: "logout.html",
+            controller: "logoutCtrl"
+        })
+        .when('/', {
+            templateUrl: "job.html",
+            controller: "logoutCtrl"
+        })
+        .when('/create-job', {
+            templateUrl: "create.html",
+            controller: "logoutCtrl"
+        })
+        .when('/edit', {
+            templateUrl: "edit.html",
             controller: "logoutCtrl"
         })
 });
@@ -40,10 +50,9 @@ app.controller("registerCtrl", function ($scope, $http, $location) {
         if ($scope.lrform.$valid) {
             $http({
                 method: 'POST',
-                url: 'http://127.0.0.1:8000/api/auth/register',
+                url: API + '/register',
                 data: $scope.member
             }).then(function successCallback(response) {
-                console.log(response);
                 Swal.fire(
                     'Register successfully!',
                     'Please check your email when accepted.',
@@ -60,7 +69,6 @@ app.controller("registerCtrl", function ($scope, $http, $location) {
                     response.message,
                     'error'
                 );
-                console.log($scope.member);
             });
         }
     }
@@ -69,7 +77,7 @@ app.controller("registerCtrl", function ($scope, $http, $location) {
 //login controller
 app.controller('loginCtrl', function ($scope, $http, $location) {
     window.scrollTo(0, 0);
-    if (sessionStorage.accessToken) {
+    if (sessionStorage.token) {
         $location.path('/list');
     }
 
@@ -82,7 +90,7 @@ app.controller('loginCtrl', function ($scope, $http, $location) {
         if ($scope.lrform.$valid) {
             $http({
                 method: 'POST',
-                url: 'http://127.0.0.1:8000/api/auth/login',
+                url: API + '/login',
                 data: $scope.member
             }).then(function successCallback(response) {
                 Swal.fire(
@@ -103,7 +111,6 @@ app.controller('loginCtrl', function ($scope, $http, $location) {
                     response.message,
                     'error'
                 );
-                console.log($scope.member);
             });
         }
     }
@@ -114,12 +121,11 @@ app.controller('logoutCtrl', function ($scope, $http) {
     $scope.logout = function () {
         $http({
             method: 'GET',
-            url: 'http://127.0.0.1:8000/api/auth/logout',
+            url: API + '/logout',
             headers: {
                 'Authorization': 'Bearer ' + sessionStorage.getItem("token")
             }
         }).then(function successCallback(response) {
-            console.log(response);
             Swal.fire(
                 'Logout successfully!',
                 'Hello',
@@ -148,7 +154,7 @@ app.controller("listCtrl", function ($scope, $location, $http) {
     if (!sessionStorage.token) {
         $location.path('/register');
     } else {
-        url = 'http://127.0.0.1:8000/api/auth/user';
+        url = API + '/user';
         auth = sessionStorage.token;
     }
     $scope.user = [];
@@ -159,19 +165,61 @@ app.controller("listCtrl", function ($scope, $location, $http) {
             'Authorization': 'Bearer ' + auth
         }
     }).then(function successCallback(responce) {
-        console.log(responce.data);
         $scope.listUser = responce.data;
-        // if ($scope.listUser.length > 6) {
-        //     for (var i = 0; i < 6; i++) {
-        //         $scope.user.push(($scope.listUser));
-        //         $scope.user = $scope.user.reverse();
-        //     }
-        // } else {
-        //     $scope.user = $scope.listUser
-        // }
+        $scope.user = $scope.listUser;
     }, function errorCallback(response) {
-        // console.log(response)
+        Swal.fire(
+            'Not found!',
+            response.data.message,
+            'error'
+        );
     });
+
+    //delete user
+    $scope.delete = function (id) {
+        Swal.fire({
+            title: "Delete",
+            text: "Are you sure you want to delete this post?",
+            type: 'warning',
+            buttons: true,
+            showCancelButton: true,
+            confirmButtonClass: 'btn btn-success',
+            cancelButtonClass: 'btn btn-danger',
+            confirmButtonText: 'Ok',
+            CancelButtonText: 'Cancel',
+            buttonsStyling: false
+        }).then(function (confirm) {
+            if (confirm) {
+                $http({
+                    method: 'DELETE',
+                    url: API + id,
+                    headers: {
+                        'Authorization': 'Bearer ' + auth
+                    }
+                }).then(function successCallback(response) {
+                    for (i in $scope.listUser.data) {
+                        if ($scope.listUser.data[i].id === id) {
+                            $scope.listUser.data.splice(i, 1);
+                        }
+                    }
+                    Swal.fire(
+                        'Delete successfully!',
+                        'Hello',
+                        'success'
+                    );
+
+                }, function errorCallback(response) {
+                    Swal.fire(
+                        'Fail',
+                        response.data.message,
+                        'error'
+                    );
+                });
+            }
+        });
+    }
 });
+
+
 
 
