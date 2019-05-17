@@ -1,5 +1,5 @@
 var app = angular.module("demo", ["ngRoute"]);
-var API = 'http://127.0.0.1:8000/api/auth';
+var API = 'http://127.0.0.1:8000/api/';
 app.constant("baseUrl", "http://localhost:63343/demo");
 app.config(function ($routeProvider) {
     $routeProvider
@@ -19,16 +19,16 @@ app.config(function ($routeProvider) {
             templateUrl: "logout.html",
             controller: "logoutCtrl"
         })
+        // .when('/', {
+        //     templateUrl: "job/list.html",
+        //     controller: "logoutCtrl"
+        // })
         .when('/', {
-            templateUrl: "job.html",
-            controller: "logoutCtrl"
-        })
-        .when('/create-job', {
-            templateUrl: "create.html",
+            templateUrl: "job/create.html",
             controller: "logoutCtrl"
         })
         .when('/edit', {
-            templateUrl: "edit.html",
+            templateUrl: "job/edit.html",
             controller: "logoutCtrl"
         })
 });
@@ -50,7 +50,7 @@ app.controller("registerCtrl", function ($scope, $http, $location) {
         if ($scope.lrform.$valid) {
             $http({
                 method: 'POST',
-                url: API + '/register',
+                url: API + 'auth/register',
                 data: $scope.member
             }).then(function successCallback(response) {
                 Swal.fire(
@@ -90,7 +90,7 @@ app.controller('loginCtrl', function ($scope, $http, $location) {
         if ($scope.lrform.$valid) {
             $http({
                 method: 'POST',
-                url: API + '/login',
+                url: API + 'auth/login',
                 data: $scope.member
             }).then(function successCallback(response) {
                 Swal.fire(
@@ -121,7 +121,7 @@ app.controller('logoutCtrl', function ($scope, $http) {
     $scope.logout = function () {
         $http({
             method: 'GET',
-            url: API + '/logout',
+            url: API + 'auth/logout',
             headers: {
                 'Authorization': 'Bearer ' + sessionStorage.getItem("token")
             }
@@ -154,7 +154,7 @@ app.controller("listCtrl", function ($scope, $location, $http) {
     if (!sessionStorage.token) {
         $location.path('/register');
     } else {
-        url = API + '/user';
+        url = API + 'auth/user';
         auth = sessionStorage.token;
     }
     $scope.user = [];
@@ -192,7 +192,7 @@ app.controller("listCtrl", function ($scope, $location, $http) {
             if (confirm) {
                 $http({
                     method: 'DELETE',
-                    url: API + id,
+                    url: API + "auth/" + id,
                     headers: {
                         'Authorization': 'Bearer ' + auth
                     }
@@ -219,6 +219,51 @@ app.controller("listCtrl", function ($scope, $location, $http) {
         });
     }
 });
+
+// create job controller
+app.controller('createCtrl', function ($scope, $http) {
+    window.scrollTo(0, 0);
+    $scope.job = {
+        "title":"",
+        "company":"",
+        "description":"",
+        "location":""
+    };
+
+    $scope.create = function () {
+        if ($scope.lrform.$valid) {
+            $http({
+                method: 'POST',
+                url: API + 'job',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Authorization': 'Bearer ' + sessionStorage.getItem("token")
+                }
+            }).then(function successCallback(response) {
+                Swal.fire(
+                    'Create successfully!',
+                    'Hello',
+                    'success'
+                );
+                console.log($scope.job);
+                lrform.reset();
+                setTimeout(function () {
+                    window.location.replace("#!edit");
+                }, 2 * 1000);
+            }, function errorCallback(response) {
+                console.log($scope.job);
+                Swal.fire(
+                    'Create fail!',
+                    response.message,
+                    'error'
+                );
+            });
+        }
+    }
+});
+
 
 
 
